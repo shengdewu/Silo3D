@@ -8,7 +8,7 @@ from sklearn.neighbors import NearestNeighbors
 class Silo3D:
     """
     基于激光雷达的筒仓物料体积计算，选择Delaunay三角形模型能够覆盖各种不规则的表面
-    1 如果 仓体内已经有物料， 则用户可以提供筒仓高、半径方式
+    1 如果 仓体内已经有物料， 则用户可以提供筒仓高、半径方式, 但是推荐 建立仓体模型 来替代 空仓点云
     2 如果空仓 使用激光雷达扫描空仓点云，精度更高
     3 点云格式 x y z intensity r g b
     """
@@ -57,8 +57,8 @@ class Silo3D:
         return v_material
 
     def calculate_volume_by_empty(self, current_pts: np.ndarray, empty_pts: Optional[np.ndarray] = None):
-        empty_tri, empty_surface = self.build_surface(empty_pts)
-        material_tri, material_surface = self.build_surface(current_pts)
+        empty_surface = self.build_surface(empty_pts)
+        material_surface = self.build_surface(current_pts)
 
         # 公告区域
         x_min = max(
@@ -153,7 +153,7 @@ class Silo3D:
         xy = points[:, 0:2]
         z = points[:, 2]
 
-        tri = Delaunay(xy)
+        # tri = Delaunay(xy)
 
         # LinearNDInterpolator 根据 xy 构建了三角形, tri 感觉不需要了
         interp = LinearNDInterpolator(
@@ -161,7 +161,7 @@ class Silo3D:
             z,
             fill_value=np.nan
         )
-        return tri, interp
+        return interp
 
     @staticmethod
     def load_cloud(filename):
